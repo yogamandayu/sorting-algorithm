@@ -65,34 +65,33 @@ func (s *Merge) Merge(l *List) {
 
 		var i, j int
 		l.Data = nil
-		for {
-			left := l.Left.Data
-			right := l.Right.Data
+		left := &l.Left.Data
+		right := &l.Right.Data
+		lenLeft := len(*left)
+		lenRight := len(*right)
 
-			if i < len(left) {
-				if left[i] <= right[j] {
-					l.Data = append(l.Data, left[i])
+		for {
+			if i < lenLeft {
+				if (*left)[i] <= (*right)[j] {
+					l.Data = append(l.Data, (*left)[i])
 					i++
-				} else if right[j] <= left[i] {
-					l.Data = append(l.Data, right[j])
+				} else if (*right)[j] <= (*left)[i] {
+					l.Data = append(l.Data, (*right)[j])
 					j++
 				}
 			}
 
-			if i >= len(left) && j >= len(right) {
+			if i >= lenLeft && j >= lenRight {
 				break
-			}
-
-			if i >= len(left) {
-				l.Data = append(l.Data, right[j:(len(right))]...)
+			} else if i >= lenLeft {
+				l.Data = append(l.Data, (*right)[j:(lenRight)]...)
 				break
-			}
-
-			if j >= len(right) {
-				l.Data = append(l.Data, left[i:(len(left))]...)
+			} else if j >= lenRight {
+				l.Data = append(l.Data, (*left)[i:(lenLeft)]...)
 				break
 			}
 		}
+
 		l.Left = nil  //reduce memory usage
 		l.Right = nil //reduce memory usage
 	}
