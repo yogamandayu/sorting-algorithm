@@ -57,6 +57,7 @@ func (s *Merge) Split(l *List) {
 	}
 }
 
+// Merge is a function to compare and sort array from right and left node; and replace the parent node with sorted array.
 func (s *Merge) Merge(l *List) {
 	if l.Left != nil { // if left is not nil, then right also not nil
 		s.Merge(l.Left)
@@ -97,6 +98,7 @@ func (s *Merge) Merge(l *List) {
 	}
 }
 
+// printList is a function to print the leaf or the single array data from the tree.
 func printList(l *List) {
 	if l.Left != nil { // if left is not nil, then right also not nil
 		printList(l.Left)
