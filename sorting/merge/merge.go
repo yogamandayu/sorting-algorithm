@@ -3,108 +3,129 @@ package merge
 import (
 	"fmt"
 	"math"
-	"time"
 )
 
-type Merge struct {
-	Data interface{}
+// Node is a struct to contain value from n of data, top, left, and right node.
+// It used for creating tree or list.
+type Node struct {
+	Value []int
+	Left  *Node
+	Right *Node
 }
 
-// New is an initialized for merge sort.
-func New(data interface{}) *Merge {
-	return &Merge{
-		Data: data,
+// NewNode is a constructor.
+func NewNode() *Node {
+	return &Node{}
+}
+
+// Sort is a function to sort data.
+// this function have a do split and merge data or we can call it
+// "Divide and Conquer",
+// what a cool name.
+// Divide is to split data into tree until it only have single data. For detail check the Divide function.
+// Conquer is to merge the data but this function also sort the value. for detail check the Conquer function.
+func Sort(n []int) []int {
+	node := &Node{
+		Value: n,
 	}
+	Divide(node)
+	Conquer(node)
+	return node.Value
 }
 
-type List struct {
-	Top   *List
-	Data  []int
-	Left  *List
-	Right *List
-}
-
-// SortIntegerWithList is a function for sorting integer data type with list structure.
-func (s *Merge) SortIntegerWithList() {
-	newData := s.Data.([]int)
-	l := List{
-		Data: newData,
+// Divide is a function to split the data into binary tree until the node value only have single data.
+// Divide split the node value into two part, left and right
+// this function do recursive until the node value only have single data.
+// After the divide is done, then it will return a tree node.
+func Divide(node *Node) {
+	if node == nil {
+		return
 	}
-	t := time.Now()
-	//printList(&l)
-	s.Split(&l)
-	s.Merge(&l)
-	//fmt.Println(l.Data)
-	//printList(&l)
-	fmt.Println("Merge : ", time.Since(t))
+
+	if len(node.Value) == 1 {
+		return
+	}
+
+	node.Left = NewNode()
+	node.Right = NewNode()
+
+	// Why using ceil because len value not represented the array index.
+	midIndex := int(math.Ceil(float64(len(node.Value)) / float64(2)))
+
+	node.Left.Value = node.Value[0:midIndex]
+	node.Right.Value = node.Value[midIndex:]
+
+	Divide(node.Left)
+	Divide(node.Right)
+
 }
 
-// Split is a function to create a tree that filled with array and split them left and right until single array value.
-func (s *Merge) Split(l *List) {
-	if len(l.Data) > 1 {
-		splitIndex := int(math.Floor(float64(len(l.Data) / 2)))
-		l.Left = &List{
-			Top:  l,
-			Data: l.Data[0:splitIndex],
+// Conquer is to merge and compare all separated node into single array in the top node.
+func Conquer(node *Node) {
+	if node.Left != nil {
+		Conquer(node.Left)
+	} else {
+		return
+	}
+	node.Value = SortMergeLeftRightNodeValue(node)
+	node.Left = nil
+
+	if node.Right != nil {
+		Conquer(node.Right)
+	}
+	node.Value = SortMergeLeftRightNodeValue(node)
+	node.Right = nil
+}
+
+// SortMergeLeftRightNodeValue is to sort and merge two slice of value.
+// This function must be called from the outer node or leaf, so every time this function is called
+// the array is already sorted.
+func SortMergeLeftRightNodeValue(node *Node) []int {
+	var value, leftValue, rightValue []int
+
+	if node.Right == nil {
+		return node.Left.Value
+	}
+
+	if node.Left != nil {
+		leftValue = node.Left.Value
+	}
+
+	if node.Right != nil {
+		rightValue = node.Right.Value
+	}
+
+	var leftIndex, rightIndex int
+	for {
+
+		// condition if all left value already move, just move all right value.
+		if leftIndex == len(leftValue) {
+			value = append(value, rightValue[rightIndex:]...)
+			return value
 		}
-		s.Split(l.Left)
 
-		l.Right = &List{
-			Top:  l,
-			Data: l.Data[splitIndex:(len(l.Data))],
+		// condition if all right value already move, just move all left value.
+		if rightIndex == len(rightValue) {
+			value = append(value, leftValue[leftIndex:]...)
+			return value
 		}
-		s.Split(l.Right)
+
+		if leftValue[leftIndex] <= rightValue[rightIndex] {
+			value = append(value, leftValue[leftIndex])
+			leftIndex++
+			continue
+		}
+		value = append(value, rightValue[rightIndex])
+		rightIndex++
 	}
 }
 
-// Merge is a function to compare and sort array from right and left node; and replace the parent node with sorted array.
-func (s *Merge) Merge(l *List) {
-	if l.Left != nil { // if left is not nil, then right also not nil
-		s.Merge(l.Left)
-		s.Merge(l.Right)
-
-		var i, j int
-		l.Data = nil
-		left := &l.Left.Data
-		right := &l.Right.Data
-		lenLeft := len(*left)
-		lenRight := len(*right)
-
-		for {
-			if i < lenLeft {
-				if (*left)[i] <= (*right)[j] {
-					l.Data = append(l.Data, (*left)[i])
-					i++
-				} else if (*right)[j] <= (*left)[i] {
-					l.Data = append(l.Data, (*right)[j])
-					j++
-				}
-			}
-
-			if i >= lenLeft && j >= lenRight {
-				break
-			} else if i >= lenLeft {
-				l.Data = append(l.Data, (*right)[j:(lenRight)]...)
-				break
-			} else if j >= lenRight {
-				l.Data = append(l.Data, (*left)[i:(lenLeft)]...)
-				break
-			}
-		}
-
-		l.Left = nil  //reduce memory usage
-		l.Right = nil //reduce memory usage
+// PrintNode is to print every node value from left to right g.
+func PrintNode(node *Node) {
+	if node == nil {
+		return
 	}
-}
-
-// printList is a function to print the leaf or the single array data from the tree.
-func printList(l *List) {
-	if l.Left != nil { // if left is not nil, then right also not nil
-		printList(l.Left)
-		printList(l.Right)
-	}
-
-	if l.Left == nil {
-		fmt.Println(l.Data) // if left is nil, then right also nil
-	}
+	fmt.Println(node.Value)
+	PrintNode(node.Left)
+	PrintNode(node.Right)
 }
